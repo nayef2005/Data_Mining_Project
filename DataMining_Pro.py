@@ -99,3 +99,5 @@ products.to_csv("products_with_clusters.csv", index=False)
 rules['antecedents'] = rules['antecedents'].apply(lambda x: list(x))
 rules['consequents'] = rules['consequents'].apply(lambda x: list(x))
 rules.to_csv("association_rules.csv", index=False)
+
+
