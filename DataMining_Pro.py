@@ -66,3 +66,36 @@ products['Cluster_NoPrice'] = apply_kmeans(products[features_base])
 
 print("\nعنقدة مع السعر:")
 products['Cluster_WithPrice'] = apply_kmeans(products[features_with_price])
+
+
+# -------------------------------
+# تحليل قواعد الارتباط
+# -------------------------------
+
+# تحويل بيانات الفواتير إلى صيغة معاملات
+invoice_product = invoices.groupby("InvoiceID")["ProductID"].apply(list)
+te = TransactionEncoder()
+te_ary = te.fit_transform(invoice_product)
+df_tf = pd.DataFrame(te_ary, columns=te.columns_)
+
+frequent_itemsets = apriori(df_tf, min_support=0.03, use_colnames=True)
+rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1.0)
+rules = rules[rules['confidence'] > 0.5].sort_values(by='lift', ascending=False).reset_index(drop=True)
+
+# عرض أفضل 10 قواعد
+print("\nTop 10 Association Rules by Lift:")
+print(rules[['antecedents', 'consequents', 'support', 'confidence', 'lift']].head(10))
+
+# رسم علاقة lift مقابل 
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=rules, x='confidence', y='lift', size='support', hue='support', palette='viridis', legend=False)
+plt.title("Association Rules: Confidence vs Lift")
+plt.savefig("association_rules_plot.png")
+
+# حفظ النتائج
+products.to_csv("products_with_clusters.csv", index=False)
+
+# حفظ قواعد الارتباط 
+rules['antecedents'] = rules['antecedents'].apply(lambda x: list(x))
+rules['consequents'] = rules['consequents'].apply(lambda x: list(x))
+rules.to_csv("association_rules.csv", index=False)
