@@ -43,3 +43,26 @@ products.dropna(inplace=True)
 categorical_cols = ['UsageType', 'MaterialType', 'ConnectivityType', 'SupplierCountry', 'Brand', 'Category', 'PriceCategory']
 for col in categorical_cols:
     products[col] = LabelEncoder().fit_transform(products[col])
+
+
+# -------------------------------
+# عنقدة KMeans
+# -------------------------------
+
+features_base = ['UsageType', 'MaterialType', 'ConnectivityType', 'PowerWatt', 'VolumeCm3', 'WeightKg', 'SupplierCountry', 'WarrantyYears', 'Stock', 'Rating', 'Brand', 'Category']
+features_with_price = features_base + ['Price']
+
+def apply_kmeans(data, n_clusters=5):
+    scaler = StandardScaler()
+    data_scaled = scaler.fit_transform(data)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    preds = kmeans.fit_predict(data_scaled)
+    score = silhouette_score(data_scaled, preds)
+    print(f"Silhouette Score: {score:.3f}")
+    return preds
+
+print("\nعنقدة بدون السعر:")
+products['Cluster_NoPrice'] = apply_kmeans(products[features_base])
+
+print("\nعنقدة مع السعر:")
+products['Cluster_WithPrice'] = apply_kmeans(products[features_with_price])
